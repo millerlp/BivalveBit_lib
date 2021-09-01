@@ -12,7 +12,8 @@
 #include <Arduino.h> // to get access to pinMode, digitalRead etc functions
 #include "SdFat.h"	// https://github.com/greiman/SdFat
 #include <SPI.h>
-#include "RTClib.h" // https://github.com/millerlp/RTClib
+#include "MCP7940.h"  // https://github.com/Zanduino/MCP7940
+//#include "RTClib.h" // https://github.com/millerlp/RTClib
 
 
 
@@ -49,10 +50,10 @@ void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bo
 
 // Start the TIMER2 timer, using a 32.768kHz input from a DS3231M
 // real time clock as the signal.
-DateTime startTIMER2(DateTime currTime, RTC_DS3231& rtc, byte SPS);
+//DateTime startTIMER2(DateTime currTime, RTC_DS3231& rtc, byte SPS);
 
 // Put the AVR to sleep until a TIMER2 interrupt fires to awaken it
-void goToSleep();
+//void goToSleep();
 
     /**
       Constructor

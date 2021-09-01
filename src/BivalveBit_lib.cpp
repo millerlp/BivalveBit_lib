@@ -28,6 +28,8 @@ unsigned int readHall(byte ANALOG_IN){
 //------------------------------------------------------------
 // Other public functions
 
+
+
 void printTimeSerial(DateTime now){
     //------------------------------------------------
     // printTime function takes a DateTime object from
@@ -72,6 +74,7 @@ void printTimeSerial(DateTime now){
 // printTimeToSD function. This formats the available data in the
 // data arrays and writes them to the SD card file in a
 // comma-separated value format.
+
 void printTimeToSD (SdFile& mylogfile, DateTime tempTime) {
     // Write the date and time in a human-readable format
     // to the file on the SD card.
@@ -102,6 +105,7 @@ void printTimeToSD (SdFile& mylogfile, DateTime tempTime) {
     }
     mylogfile.print(tempTime.second(), DEC);
 }
+
 
 //-------------- initFileName --------------------------------------------------
 // initFileName - a function to create a filename for the SD card based
@@ -234,7 +238,8 @@ void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bo
 // a sample per second value (SPS) of 1, 2 , or 4
 // This function returns a DateTime value that can be used to show the
 // current time when returning from this function.
-DateTime startTIMER2(DateTime currTime, RTC_DS3231& rtc, byte SPS){
+
+/* DateTime startTIMER2(DateTime currTime, RTC_DS3231& rtc, byte SPS){
     TIMSK2 = 0; // stop timer 2 interrupts
     
     rtc.enable32kHz(true);
@@ -286,12 +291,13 @@ DateTime startTIMER2(DateTime currTime, RTC_DS3231& rtc, byte SPS){
     // of SPS "SAMPLES_PER_SECOND") regardless of whether the AVR is awake or asleep.
     return currTime;
 }
-
+ */
 //--------------------goToSleep-----------------------------------------------
 // goToSleep function. When called, this puts the AVR to
 // sleep until it is awakened by an interrupt (TIMER2 in this case)
 // This is a higher power sleep mode than the lowPowerSleep function uses.
-void goToSleep() {
+
+/*void goToSleep() {
     // Create three variables to hold the current status register contents
     byte adcsra, mcucr1, mcucr2;
     // Cannot re-enter sleep mode within one TOSC cycle.
@@ -329,7 +335,7 @@ void goToSleep() {
     // watchdogSetup(); // re-enable watchdog timer
     ADCSRA = adcsra; // re-apply the previous settings to the ADC status register
     
-}
+} */
 
 
 //------------readBatteryVoltage-------------------
