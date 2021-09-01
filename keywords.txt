@@ -1,0 +1,17 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+#ADG725 		KEYWORD1
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+
+initFileName			KEYWORD2
+startTIMER2			KEYWORD2
+goToSleep			KEYWORD2
+printTimeToSD			KEYWORD2
+OLEDscreenUpdate		KEYWORD2
+readBatteryVoltage		KEYWORD2
