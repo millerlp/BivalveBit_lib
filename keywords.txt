@@ -15,3 +15,5 @@ goToSleep			KEYWORD2
 printTimeToSD			KEYWORD2
 OLEDscreenUpdate		KEYWORD2
 readBatteryVoltage		KEYWORD2
+readHall				KEYWORD2
+readWakeHall			KEYWORD2

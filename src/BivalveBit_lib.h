@@ -14,7 +14,8 @@
 #include <SPI.h>
 #include "MCP7940.h"  // https://github.com/Zanduino/MCP7940
 //#include "RTClib.h" // https://github.com/millerlp/RTClib
-
+#include "SSD1306Ascii.h" // https://github.com/greiman/SSD1306Ascii
+#include "SSD1306AsciiWire.h" // https://github.com/greiman/SSD1306Ascii
 
 
 // Various additional libraries for access to sleep mode functions
@@ -34,9 +35,13 @@
 
 // Take a set of 4 Hall effect sensor readings and return the average integer value
 unsigned int readHall(byte ANALOG_IN);
+unsigned int readWakeHall(byte ANALOG_IN, byte HALL_SLEEP);
 
 // Print formatted Date + Time to Serial monitor
 void printTimeSerial(DateTime now);
+
+// Print time to OLED display
+void printTimeOLED(DateTime now, SSD1306AsciiWire& oled1);
 
 // Print formatted Date + Time to SD card csv file. Notice that this passes the
 // SdFile object by reference (SdFile& mylogfile) instead of making a copy and

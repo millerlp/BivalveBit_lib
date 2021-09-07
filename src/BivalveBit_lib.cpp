@@ -25,6 +25,25 @@ unsigned int readHall(byte ANALOG_IN){
   return rawAnalog;
 }
 
+
+unsigned int readWakeHall(byte ANALOG_IN, byte HALL_SLEEP) {
+  digitalWrite(HALL_SLEEP, HIGH); // turn on hall effect sensor
+  delayMicroseconds(50);	
+  unsigned int rawAnalog = 0;
+  analogRead(ANALOG_IN); // throw away 1st reading
+  for (byte i = 0; i<4; i++){
+    rawAnalog = rawAnalog + analogRead(ANALOG_IN);
+    delay(1);
+  }
+  digitalWrite(HALL_SLEEP, LOW); // put hall sensor to sleep
+  // Do a 2-bit right shift to divide rawAnalog
+  // by 4 to get the average of the 4 readings
+  rawAnalog = rawAnalog >> 2;   
+  return rawAnalog;
+}
+
+
+
 //------------------------------------------------------------
 // Other public functions
 
@@ -67,7 +86,41 @@ void printTimeSerial(DateTime now){
 }
 
 
-
+void printTimeOLED(DateTime now, SSD1306AsciiWire& oled1){
+    //------------------------------------------------
+    // printTime function takes a DateTime object from
+    // the real time clock and prints the date and time
+    // to the OLED screen.
+    oled1.print(now.year(), DEC);
+    oled1.print('-');
+    if (now.month() < 10) {
+        oled1.print(F("0"));
+    }
+    oled1.print(now.month(), DEC);
+    oled1.print('-');
+    if (now.day() < 10) {
+        oled1.print(F("0"));
+    }
+    oled1.print(now.day(), DEC);
+    oled1.print(' ');
+    if (now.hour() < 10){
+        oled1.print(F("0"));
+    }
+    oled1.print(now.hour(), DEC);
+    oled1.print(':');
+    if (now.minute() < 10) {
+        oled1.print("0");
+    }
+    oled1.print(now.minute(), DEC);
+    oled1.print(':');
+    if (now.second() < 10) {
+        oled1.print(F("0"));
+    }
+    oled1.print(now.second(), DEC);
+    // You may want to print a newline character
+    // after calling this function i.e. Serial.println();
+    
+}
 
 
 //---------------printTimeToSD----------------------------------------
