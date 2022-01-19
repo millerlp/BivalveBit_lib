@@ -52,6 +52,16 @@ void printTimeToSD(SdFile& mylogfile, DateTime now);
 // to the file, so you may want to tweak the column labels in this function.
 void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bool serialValid, char *serialNumber);
 
+// Set unused pins to INPUT_PULLUP to save power
+void setUnusedPins(void);
+
+// Disable some unused peripherals
+void disableUnusedPeripherals(void);
+
+
+// Restart ADC after it was shut down
+void enableADC(void);
+void disableADC(void);
 
 // Start the TIMER2 timer, using a 32.768kHz input from a DS3231M
 // real time clock as the signal.

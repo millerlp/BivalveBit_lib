@@ -424,5 +424,47 @@ float readBatteryVoltage(byte BATT_MONITOR_EN,
 }
 
 
+// Set unused pins to INPUT_PULLUP to save power
+void setUnusedPins(void){
+  pinMode(14, INPUT_PULLUP); // PD2
+  pinMode(15, INPUT_PULLUP); // PD3
+  pinMode(16, INPUT_PULLUP); // PD4
+  pinMode(17, INPUT_PULLUP); // PD5
+  pinMode(18, INPUT_PULLUP); // PD6
+  pinMode(21, INPUT_PULLUP); // PF1
+  pinMode(22, INPUT_PULLUP); // PF2
+  pinMode(23, INPUT_PULLUP); // PF3
+  pinMode(25, INPUT_PULLUP); // PF5
+}
+
+
+// Disable unused peripherals during Active mode (and sleep modes)
+void disableUnusedPeripherals(void){
+	// Disable analog comparator 0
+	uint8_t temp = AC0.CTRLA;
+	temp &= ~0x01;
+	AC0.CTRLA = temp;
+	// Disable CCL peripheral
+	temp = CCL.CTRLA;
+	temp &= ~0x01;
+	CCL.CTRLA = temp;
+	// Disable CRCSCAN peripheral
+	temp = CRCSCAN.CTRLA;
+	temp &= ~0x01;
+	CRCSCAN.CTRLA = temp;
+}
+
+
+void enableADC(void){
+	uint8_t temp = ADC0.CTRLA;
+	temp |= 0x01;
+	ADC0.CTRLA = temp;
+}
+
+void disableADC(void){
+	uint8_t temp = ADC0.CTRLA;
+	temp &= ~0x01;
+	ADC0.CTRLA = temp;
+}
 
 
