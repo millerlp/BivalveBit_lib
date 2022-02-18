@@ -46,12 +46,33 @@ void printTimeOLED(DateTime now, SSD1306AsciiWire& oled1);
 // Print formatted Date + Time to SD card csv file. Notice that this passes the
 // SdFile object by reference (SdFile& mylogfile) instead of making a copy and
 // passing by value (which SdFile mylogfile would do).
-void printTimeToSD(SdFile& mylogfile, DateTime now);
+void printTimeToSD(File& mylogfile, DateTime now);
 
 // Initialize a new output csv file. Note that this writes a header row
 // to the file, so you may want to tweak the column labels in this function.
-void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bool serialValid, char *serialNumber);
+void initHeartFileName(SdFat& sd, File& IRFile, DateTime time1, char *heartfilename, bool serialValid, char *serialNumber);
 
+// Initialize a new output csv file. Note that this writes a header row
+// to the file, so you may want to tweak the column labels in this function.
+void initGapeFileName(SdFat& sd, File& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber);
+
+
+
+/**
+  Constructor
+
+  @param BATT_MONITOR_EN - a pin number, used to enable the battery monitor circuit
+  @param BATT_MONITOR - an analog input pin number used to read the battery voltage
+  @param dividerRatio - the effective voltage divider value (i.e. (47k + 47k)/47k = 2)
+  @param refVoltage - the voltage measured on the AREF pin that is used by the ADC
+*/
+// Function to read supply battery voltage
+float readBatteryVoltage(byte BATT_MONITOR_EN, 
+							byte BATT_MONITOR, 
+							float dividerRatio, 
+							float refVoltage);
+
+							
 // Set unused pins to INPUT_PULLUP to save power
 void setUnusedPins(void);
 
@@ -63,29 +84,14 @@ void disableUnusedPeripherals(void);
 void enableADC(void);
 void disableADC(void);
 
-// Start the TIMER2 timer, using a 32.768kHz input from a DS3231M
-// real time clock as the signal.
-//DateTime startTIMER2(DateTime currTime, RTC_DS3231& rtc, byte SPS);
+// Func to set up the Periodic Interrupt Timer at 8Hz
+// You must set up an external 32.768kHz clock signal on TOSC1
+// such as from the MCP79400 real time clock
+void PIT_init(void);			
+							
 
-// Put the AVR to sleep until a TIMER2 interrupt fires to awaken it
-//void goToSleep();
-
-    /**
-      Constructor
-
-      @param BATT_MONITOR_EN - a pin number, used to enable the battery monitor circuit
-      @param BATT_MONITOR - an analog input pin number used to read the battery voltage
-      @param dividerRatio - the effective voltage divider value (i.e. (47k + 47k)/47k = 2)
-      @param refVoltage - the voltage measured on the AREF pin that is used by the ADC
-    */
-
-
-// Function to read supply battery voltage
-float readBatteryVoltage(byte BATT_MONITOR_EN, 
-							byte BATT_MONITOR, 
-							float dividerRatio, 
-							float refVoltage);
-
-
-
+// Function to set up sleep mode
+// You must still call sleep_cpu() in the main program to enter sleep
+void SLPCTRL_init(void);
+							
 #endif /* MusselBedHeaterlib_H */

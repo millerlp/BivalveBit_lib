@@ -128,7 +128,7 @@ void printTimeOLED(DateTime now, SSD1306AsciiWire& oled1){
 // data arrays and writes them to the SD card file in a
 // comma-separated value format.
 
-void printTimeToSD (SdFile& mylogfile, DateTime tempTime) {
+void printTimeToSD (File& mylogfile, DateTime tempTime) {
     // Write the date and time in a human-readable format
     // to the file on the SD card.
     mylogfile.print(tempTime.year(), DEC);
@@ -160,12 +160,12 @@ void printTimeToSD (SdFile& mylogfile, DateTime tempTime) {
 }
 
 
-//-------------- initFileName --------------------------------------------------
-// initFileName - a function to create a filename for the SD card based
-// on the 4-digit year, month, day, hour, minutes and a 2-digit counter.
-// The character array 'filename' was defined as a global array
-// at the top of the sketch in the form "YYYYMMDD_HHMM_00.csv"
-void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bool serialValid, char *serialNumber) {
+//-------------- initHeartFileName --------------------------------------------------
+// initHeartFileName - a function to create a filename for the SD card based
+// on the 4-digit year, month, day, hour, minutes and a serial number.
+// The character array 'heartfilename' was defined as a global array
+// at the top of the sketch in the form "YYYYMMDD_HHMM_00_SN000_IR.csv"
+void initHeartFileName(SdFat& sd, File& IRFile, DateTime time1, char *heartfilename, bool serialValid, char *serialNumber) {
     
     char buf[5];
     // integer to ascii function itoa(), supplied with numeric year value,
@@ -173,50 +173,50 @@ void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bo
     itoa(time1.year(), buf, 10);
     // copy the ascii year into the filename array
     for (byte i = 0; i < 4; i++){
-        filename[i] = buf[i];
+        heartfilename[i] = buf[i];
     }
     // Insert the month value
     if (time1.month() < 10) {
-        filename[4] = '0';
-        filename[5] = time1.month() + '0';
+        heartfilename[4] = '0';
+        heartfilename[5] = time1.month() + '0';
     } else if (time1.month() >= 10) {
-        filename[4] = (time1.month() / 10) + '0';
-        filename[5] = (time1.month() % 10) + '0';
+        heartfilename[4] = (time1.month() / 10) + '0';
+        heartfilename[5] = (time1.month() % 10) + '0';
     }
     // Insert the day value
     if (time1.day() < 10) {
-        filename[6] = '0';
-        filename[7] = time1.day() + '0';
+        heartfilename[6] = '0';
+        heartfilename[7] = time1.day() + '0';
     } else if (time1.day() >= 10) {
-        filename[6] = (time1.day() / 10) + '0';
-        filename[7] = (time1.day() % 10) + '0';
+        heartfilename[6] = (time1.day() / 10) + '0';
+        heartfilename[7] = (time1.day() % 10) + '0';
     }
     // Insert an underscore between date and time
-    filename[8] = '_';
+    heartfilename[8] = '_';
     // Insert the hour
     if (time1.hour() < 10) {
-        filename[9] = '0';
-        filename[10] = time1.hour() + '0';
+        heartfilename[9] = '0';
+        heartfilename[10] = time1.hour() + '0';
     } else if (time1.hour() >= 10) {
-        filename[9] = (time1.hour() / 10) + '0';
-        filename[10] = (time1.hour() % 10) + '0';
+        heartfilename[9] = (time1.hour() / 10) + '0';
+        heartfilename[10] = (time1.hour() % 10) + '0';
     }
     // Insert minutes
     if (time1.minute() < 10) {
-        filename[11] = '0';
-        filename[12] = time1.minute() + '0';
+        heartfilename[11] = '0';
+        heartfilename[12] = time1.minute() + '0';
     } else if (time1.minute() >= 10) {
-        filename[11] = (time1.minute() / 10) + '0';
-        filename[12] = (time1.minute() % 10) + '0';
+        heartfilename[11] = (time1.minute() / 10) + '0';
+        heartfilename[12] = (time1.minute() % 10) + '0';
     }
     // Insert another underscore after time
-    filename[13] = '_';
-    // If there is a valid serialnumber, insert it into
-    // the file name in positions 17-20.
+    heartfilename[13] = '_';
+    // If there is a valid serialnumber SNxxx, insert it into
+    // the file name in positions 17-21.
     if (serialValid) {
         byte serCount = 0;
-        for (byte i = 17; i < 21; i++){
-            filename[i] = serialNumber[serCount];
+        for (byte i = 17; i < 22; i++){
+            heartfilename[i] = serialNumber[serCount];
             serCount++;
         }
     }
@@ -226,13 +226,13 @@ void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bo
     // during a normal data run, but can be useful when
     // troubleshooting.
     for (uint8_t i = 0; i < 100; i++) {
-        filename[14] = i / 10 + '0';
-        filename[15] = i % 10 + '0';
+        heartfilename[14] = i / 10 + '0';
+        heartfilename[15] = i % 10 + '0';
         
-        if (!sd.exists(filename)) {
+        if (!sd.exists(heartfilename)) {
             // when sd.exists() returns false, this block
             // of code will be executed to open the file
-            if (!logfile.open(filename, O_RDWR | O_CREAT | O_AT_END)) {
+            if (!IRFile.open(heartfilename, O_RDWR | O_CREAT | O_AT_END)) {
                 // If there is an error opening the file, notify the
                 // user. Otherwise, the file is open and ready for writing
                 // Turn both indicator LEDs on to indicate a failure
@@ -242,153 +242,126 @@ void initFileName(SdFat& sd, SdFile& logfile, DateTime time1, char *filename, bo
                 delay(5);
             }
             break; // Break out of the for loop when the
-            // statement if(!logfile.exists())
+            // statement if(!IRFile.exists())
             // is finally false (i.e. you found a new file name to use).
         } // end of if(!sd.exists())
     } // end of file-naming for loop
     //------------------------------------------------------------
     // Write 1st header line
-    logfile.print(F("POSIXt,DateTime"));
-	// write column headers for the 4 reference mussel temperatures
-	for (byte i = 1; i <=4; i++){
-		logfile.print(F(",RefTemp")); // column title
-		logfile.print(i);		// add channel number to title
-		logfile.print(F(".C")); // add units Celsius on end
-	}
-	// write header for Setpoint temperature
-	logfile.print(F(",Setpoint.C"));
-	
-	// write column headers for the 16 heated mussel temperatures
-    for (byte i = 1; i <= 16; i++){
-        
-        logfile.print(F(",Heated")); // column title
-        logfile.print(i);		     // add channel number to title
-		logfile.print(F(".C"));      // add units Celsius on end
-    }
-    logfile.print(F(",Battery.V"));
-	logfile.print(F(",Tide.ft"));
-	logfile.print(F(",State"));
-    logfile.println();
+	// Header will consist of POSIXt,DateTime,Serial Number, IR value
+    IRFile.print(F("POSIXt,DateTime,SN,IR"));
+    IRFile.println();
     // Update the file's creation date, modify date, and access date.
-    logfile.timestamp(T_CREATE, time1.year(), time1.month(), time1.day(), 
+    IRFile.timestamp(T_CREATE, time1.year(), time1.month(), time1.day(), 
                       time1.hour(), time1.minute(), time1.second());
-    logfile.timestamp(T_WRITE, time1.year(), time1.month(), time1.day(), 
+    IRFile.timestamp(T_WRITE, time1.year(), time1.month(), time1.day(), 
                       time1.hour(), time1.minute(), time1.second());
-    logfile.timestamp(T_ACCESS, time1.year(), time1.month(), time1.day(), 
+    IRFile.timestamp(T_ACCESS, time1.year(), time1.month(), time1.day(), 
                       time1.hour(), time1.minute(), time1.second());
-    logfile.close(); // force the data to be written to the file by closing it
-} // end of initFileName function
+    IRFile.close(); // force the data to be written to the file by closing it
+} // end of initHeartFileName function
 
 
-
-
-//---------- startTIMER2 ----------------------------------------------------
-// startTIMER2 function
-// Starts the 32.768kHz clock signal being fed into XTAL1 from the
-// real time clock to drive the
-// quarter-second interrupts used during data-collecting periods.
-// Supply a current DateTime time value, the real time clock object, and
-// a sample per second value (SPS) of 1, 2 , or 4
-// This function returns a DateTime value that can be used to show the
-// current time when returning from this function.
-
-/* DateTime startTIMER2(DateTime currTime, RTC_DS3231& rtc, byte SPS){
-    TIMSK2 = 0; // stop timer 2 interrupts
+//-------------- initGapeFileName --------------------------------------------------
+// initGapeFileName - a function to create a filename for the SD card based
+// on the 4-digit year, month, day, hour, minutes and a serial number.
+// The character array 'gapefilename' was defined as a global array
+// at the top of the sketch in the form "YYYYMMDD_HHMM_00_SN000_GAPE.csv"
+void initGapeFileName(SdFat& sd, File& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber) {
     
-    rtc.enable32kHz(true);
-    ASSR = _BV(EXCLK); // Set EXCLK external clock bit in ASSR register
-    // The EXCLK bit should only be set if you're trying to feed the
-    // 32.768 clock signal from the Chronodot into XTAL1.
-    
-    ASSR = ASSR | _BV(AS2); // Set the AS2 bit, using | (OR) to avoid
-    // clobbering the EXCLK bit that might already be set. This tells
-    // TIMER2 to take its clock signal from XTAL1/2
-    TCCR2A = 0; //override arduino settings, ensure WGM mode 0 (normal mode)
-    
-    // Set up TCCR2B register (Timer Counter Control Register 2 B) to use the
-    // desired prescaler on the external 32.768kHz clock signal. Depending on
-    // which bits you set high among CS22, CS21, and CS20, different
-    // prescalers will be used. See Table 18-9 on page 158 of the AVR 328P
-    // datasheet.
-    //  TCCR2B = 0;  // No clock source (Timer/Counter2 stopped)
-    // no prescaler -- TCNT2 will overflow once every 0.007813 seconds (128Hz)
-    //  TCCR2B = _BV(CS20) ;
-    // prescaler clk/8 -- TCNT2 will overflow once every 0.0625 seconds (16Hz)
-    if (SPS == 16){
-        TCCR2B = _BV(CS21) ;
-    } else if (SPS == 4){
-        // prescaler clk/32 -- TCNT2 will overflow once every 0.25 seconds
-        TCCR2B = _BV(CS21) | _BV(CS20);
-    } else if (SPS == 2) {
-        TCCR2B = _BV(CS22) ; // prescaler clk/64 -- TCNT2 will overflow once every 0.5 seconds
-    } else if (SPS == 1){
-        TCCR2B = _BV(CS22) | _BV(CS20); // prescaler clk/128 -- TCNT2 will overflow once every 1 second
+    char buf[5];
+    // integer to ascii function itoa(), supplied with numeric year value,
+    // a buffer to hold output, and the base for the conversion (base 10 here)
+    itoa(time1.year(), buf, 10);
+    // copy the ascii year into the filename array
+    for (byte i = 0; i < 4; i++){
+        gapefilename[i] = buf[i];
     }
-    
-    
-    // Pause briefly to let the RTC roll over a new second
-    DateTime starttime = currTime;
-    // Cycle in a while loop until the RTC's seconds value updates
-    while (starttime.second() == currTime.second()) {
-        delay(1);
-        currTime = rtc.now(); // check time again
+    // Insert the month value
+    if (time1.month() < 10) {
+        gapefilename[4] = '0';
+        gapefilename[5] = time1.month() + '0';
+    } else if (time1.month() >= 10) {
+        gapefilename[4] = (time1.month() / 10) + '0';
+        gapefilename[5] = (time1.month() % 10) + '0';
     }
-    
-    TCNT2 = 0; // start the timer at zero
-    // wait for the registers to be updated
-    while (ASSR & (_BV(TCN2UB) | _BV(TCR2AUB) | _BV(TCR2BUB))) {}
-    TIFR2 = _BV(OCF2B) | _BV(OCF2A) | _BV(TOV2); // clear the interrupt flags
-    TIMSK2 = _BV(TOIE2); // enable the TIMER2 interrupt on overflow
-    // TIMER2 will now create an interrupt every time it rolls over,
-    // which should be every 0.0625, 0.25, 0.5 or 1 seconds (depending on value
-    // of SPS "SAMPLES_PER_SECOND") regardless of whether the AVR is awake or asleep.
-    return currTime;
-}
- */
-//--------------------goToSleep-----------------------------------------------
-// goToSleep function. When called, this puts the AVR to
-// sleep until it is awakened by an interrupt (TIMER2 in this case)
-// This is a higher power sleep mode than the lowPowerSleep function uses.
-
-/*void goToSleep() {
-    // Create three variables to hold the current status register contents
-    byte adcsra, mcucr1, mcucr2;
-    // Cannot re-enter sleep mode within one TOSC cycle.
-    // This provides the needed delay.
-    OCR2A = 0; // write to OCR2A, we're not using it, but no matter
-    while (ASSR & _BV(OCR2AUB)) {} // wait for OCR2A to be updated
-    // Set the sleep mode to PWR_SAVE, which allows TIMER2 to wake the AVR
-    set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-    adcsra = ADCSRA; // save the ADC Control and Status Register A
-    ADCSRA = 0; // disable ADC by zeroing out the ADC status register
-    sleep_enable();
-    // Do not interrupt before we go to sleep, or the
-    // ISR will detach interrupts and we won't wake.
-    noInterrupts ();
-    
-    // wdt_disable(); // turn off the watchdog timer
-    
-    //ATOMIC_FORCEON ensures interrupts are enabled so we can wake up again
-    ATOMIC_BLOCK(ATOMIC_FORCEON) {
-        // Turn off the brown-out detector
-        mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);
-        mcucr2 = mcucr1 & ~_BV(BODSE);
-        MCUCR = mcucr1; //timed sequence
-        // BODS stays active for 3 cycles, sleep instruction must be executed
-        // while it's active
-        MCUCR = mcucr2;
+    // Insert the day value
+    if (time1.day() < 10) {
+        gapefilename[6] = '0';
+        gapefilename[7] = time1.day() + '0';
+    } else if (time1.day() >= 10) {
+        gapefilename[6] = (time1.day() / 10) + '0';
+        gapefilename[7] = (time1.day() % 10) + '0';
     }
-    // We are guaranteed that the sleep_cpu call will be done
-    // as the processor executes the next instruction after
-    // interrupts are turned on.
-    interrupts();  // one cycle, re-enables interrupts
-    sleep_cpu(); //go to sleep
-    //wake up here
-    sleep_disable(); // upon wakeup (due to interrupt), AVR resumes here
-    // watchdogSetup(); // re-enable watchdog timer
-    ADCSRA = adcsra; // re-apply the previous settings to the ADC status register
-    
-} */
+    // Insert an underscore between date and time
+    gapefilename[8] = '_';
+    // Insert the hour
+    if (time1.hour() < 10) {
+        gapefilename[9] = '0';
+        gapefilename[10] = time1.hour() + '0';
+    } else if (time1.hour() >= 10) {
+        gapefilename[9] = (time1.hour() / 10) + '0';
+        gapefilename[10] = (time1.hour() % 10) + '0';
+    }
+    // Insert minutes
+    if (time1.minute() < 10) {
+        gapefilename[11] = '0';
+        gapefilename[12] = time1.minute() + '0';
+    } else if (time1.minute() >= 10) {
+        gapefilename[11] = (time1.minute() / 10) + '0';
+        gapefilename[12] = (time1.minute() % 10) + '0';
+    }
+    // Insert another underscore after time
+    gapefilename[13] = '_';
+    // If there is a valid serialnumber SNxxx, insert it into
+    // the file name in positions 17-21.
+    if (serialValid) {
+        byte serCount = 0;
+        for (byte i = 17; i < 22; i++){
+            gapefilename[i] = serialNumber[serCount];
+            serCount++;
+        }
+    }
+    // Next change the counter on the end of the filename
+    // (digits 14+15) to increment count for files generated on
+    // the same day. This shouldn't come into play
+    // during a normal data run, but can be useful when
+    // troubleshooting.
+    for (uint8_t i = 0; i < 100; i++) {
+        gapefilename[14] = i / 10 + '0';
+        gapefilename[15] = i % 10 + '0';
+        
+        if (!sd.exists(gapefilename)) {
+            // when sd.exists() returns false, this block
+            // of code will be executed to open the file
+            if (!GAPEFile.open(gapefilename, O_RDWR | O_CREAT | O_AT_END)) {
+                // If there is an error opening the file, notify the
+                // user. Otherwise, the file is open and ready for writing
+                // Turn both indicator LEDs on to indicate a failure
+                // to create the log file
+                //				digitalWrite(ERRLED, !digitalRead(ERRLED)); // Toggle error led
+                //				digitalWrite(GREENLED, !digitalRead(GREENLED)); // Toggle indicator led
+                delay(5);
+            }
+            break; // Break out of the for loop when the
+            // statement if(!GAPEFile.exists())
+            // is finally false (i.e. you found a new file name to use).
+        } // end of if(!sd.exists())
+    } // end of file-naming for loop
+    //------------------------------------------------------------
+    // Write 1st header line
+	// Header will be: POSIXt, DateTime, SN (serial number), Hall value, Temperature, Battery Voltage
+    GAPEFile.print(F("POSIXt,DateTime,SN,Hall,Temp.C,Battery.V"));
+    GAPEFile.println();
+    // Update the file's creation date, modify date, and access date.
+    GAPEFile.timestamp(T_CREATE, time1.year(), time1.month(), time1.day(), 
+                      time1.hour(), time1.minute(), time1.second());
+    GAPEFile.timestamp(T_WRITE, time1.year(), time1.month(), time1.day(), 
+                      time1.hour(), time1.minute(), time1.second());
+    GAPEFile.timestamp(T_ACCESS, time1.year(), time1.month(), time1.day(), 
+                      time1.hour(), time1.minute(), time1.second());
+    GAPEFile.close(); // force the data to be written to the file by closing it
+} // end of initGapeFileName function
 
 
 //------------readBatteryVoltage-------------------
@@ -468,3 +441,73 @@ void disableADC(void){
 }
 
 
+void PIT_init(void)
+{
+    
+    uint8_t temp;
+    
+    /* Initialize 32.768kHz Oscillator: */
+    /* Disable oscillator by writing 0 to the ENABLE bit in the XOSC32KCTRLA register: */
+    temp = CLKCTRL.XOSC32KCTRLA; // read register contents
+    temp &= ~CLKCTRL_ENABLE_bm; // modify register, write 0 to ENABLE bit to allow changing setting
+    /* Writing to protected register */
+    _PROTECTED_WRITE(CLKCTRL.XOSC32KCTRLA, temp);  // Arduino version of ccp_write_io
+    
+    while(CLKCTRL.MCLKSTATUS & CLKCTRL_XOSC32KS_bm)
+    {
+        ; /* Wait until XOSC32KS becomes 0 */
+    }
+
+    /* SEL = 0 (Use External Crystal): */
+    // Now you can actually change the register values safely
+    temp = CLKCTRL.XOSC32KCTRLA;
+    temp |= CLKCTRL_SEL_bm; // Set up for external clock on TOSC1 pin only by writing a 1
+    /* Writing to protected register */
+     _PROTECTED_WRITE(CLKCTRL.XOSC32KCTRLA, temp);  // Arduino version of ccp_write_io
+     // We're not yet set up to actually read a clock input on TOSC1
+
+    /* Enable oscillator: */
+    temp = CLKCTRL.XOSC32KCTRLA;
+    temp |= CLKCTRL_ENABLE_bm; // This will update TOSC1's function
+    /* Writing to protected register */
+    _PROTECTED_WRITE(CLKCTRL.XOSC32KCTRLA, temp);  // Arduino version of ccp_write_io
+
+    /* There was a quirk where the RTC status would not go to zero when you 
+     *  re-entered this function after running it once. Disabling the RTC.CTRLA Enable
+     *  bit appears to fix the problem
+     */
+    // Disable RTC (resets RTC and PIT if you write to RTC.CTRLA due to silicone error
+    RTC.CTRLA &= ~RTC_RTCEN_bm; // disable RTC
+
+    /* Initialize RTC: */
+    while (RTC.STATUS > 0)
+    {
+        ; /* Wait for all register to be synchronized */
+    }
+
+    /* Set RTC peripheral to read a 32.768kHz external clock signal from TOSC1 */
+    RTC.CLKSEL = RTC_CLKSEL_TOSC32K_gc; // external crystal on TOSC1
+
+    
+    RTC.PITINTCTRL = RTC_PI_bm; /* Periodic Interrupt: enabled */
+
+    // Define the prescalar value for the periodic interrupt timer. This will divide the
+    // 32.768kHz input by the chosen prescaler. A prescaler of 32768 will cause the 
+    // interrupt to only fire once per second.
+//    RTC.PITCTRLA = RTC_PERIOD_CYC32768_gc /* RTC Clock Cycles 32768 */
+//                 | RTC_PITEN_bm; /* Enable: enabled by writing 1*/
+
+    // Prescaler 4096 gives 8 interrupts per second (period from high to high = 250ms)
+    RTC.PITCTRLA = RTC_PERIOD_CYC4096_gc /* RTC Clock Cycles 4096 */
+             | RTC_PITEN_bm; /* Enable: enabled by writing 1*/        
+ 
+}
+
+
+void SLPCTRL_init(void)
+{
+    SLPCTRL.CTRLA |= SLPCTRL_SMODE_PDOWN_gc; // Use this for lowest power POWERDOWN mode
+//    SLPCTRL.CTRLA |= SLPCTRL_SMODE_STDBY_gc; // Use this for Standby mode
+    SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;	// Enable sleep mode
+	// You must still call sleep_cpu() in the main program to enter sleep mode
+}
