@@ -128,7 +128,7 @@ void printTimeOLED(DateTime now, SSD1306AsciiWire& oled1){
 // data arrays and writes them to the SD card file in a
 // comma-separated value format.
 
-void printTimeToSD (File& mylogfile, DateTime tempTime) {
+void printTimeToSD (SdFile& mylogfile, DateTime tempTime) {
     // Write the date and time in a human-readable format
     // to the file on the SD card.
     mylogfile.print(tempTime.year(), DEC);
@@ -165,7 +165,7 @@ void printTimeToSD (File& mylogfile, DateTime tempTime) {
 // on the 4-digit year, month, day, hour, minutes and a serial number.
 // The character array 'heartfilename' was defined as a global array
 // at the top of the sketch in the form "YYYYMMDD_HHMM_00_SN000_IR.csv"
-void initHeartFileName(SdFat& sd, File& IRFile, DateTime time1, char *heartfilename, bool serialValid, char *serialNumber) {
+void initHeartFileName(SdFat& sd, SdFile& IRFile, DateTime time1, char *heartfilename, bool serialValid, char *serialNumber) {
     
     char buf[5];
     // integer to ascii function itoa(), supplied with numeric year value,
@@ -267,7 +267,7 @@ void initHeartFileName(SdFat& sd, File& IRFile, DateTime time1, char *heartfilen
 // on the 4-digit year, month, day, hour, minutes and a serial number.
 // The character array 'gapefilename' was defined as a global array
 // at the top of the sketch in the form "YYYYMMDD_HHMM_00_SN000_GAPE.csv"
-void initGapeFileName(SdFat& sd, File& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber) {
+void initGapeFileName(SdFat& sd, SdFile& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber) {
     
     char buf[5];
     // integer to ascii function itoa(), supplied with numeric year value,

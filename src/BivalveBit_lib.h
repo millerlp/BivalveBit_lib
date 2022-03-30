@@ -46,15 +46,15 @@ void printTimeOLED(DateTime now, SSD1306AsciiWire& oled1);
 // Print formatted Date + Time to SD card csv file. Notice that this passes the
 // SdFile object by reference (SdFile& mylogfile) instead of making a copy and
 // passing by value (which SdFile mylogfile would do).
-void printTimeToSD(File& mylogfile, DateTime now);
+void printTimeToSD(SdFile& mylogfile, DateTime now);
 
 // Initialize a new output csv file. Note that this writes a header row
 // to the file, so you may want to tweak the column labels in this function.
-void initHeartFileName(SdFat& sd, File& IRFile, DateTime time1, char *heartfilename, bool serialValid, char *serialNumber);
+void initHeartFileName(SdFat& sd, SdFile& IRFile, DateTime time1, char *heartfilename, bool serialValid, char *serialNumber);
 
 // Initialize a new output csv file. Note that this writes a header row
 // to the file, so you may want to tweak the column labels in this function.
-void initGapeFileName(SdFat& sd, File& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber);
+void initGapeFileName(SdFat& sd, SdFile& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber);
 
 
 
