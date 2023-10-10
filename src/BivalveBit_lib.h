@@ -56,6 +56,10 @@ void initHeartFileName(SdFat& sd, SdFile& IRFile, DateTime time1, char *heartfil
 // to the file, so you may want to tweak the column labels in this function.
 void initGapeFileName(SdFat& sd, SdFile& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber);
 
+// Initialize a new output csv file. Note that this writes a header row
+// to the file, so you may want to tweak the column labels in this function. This version does not attempt 
+// to record the temperature (when only a gape sensor is present)
+void initGapeOnlyFileName(SdFat& sd, SdFile& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber);
 
 
 /**
