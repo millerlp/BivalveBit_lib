@@ -364,6 +364,111 @@ void initGapeFileName(SdFat& sd, SdFile& GAPEFile, DateTime time1, char *gapefil
 } // end of initGapeFileName function
 
 
+
+//-------------- initGapeOnlyFileName --------------------------------------------------
+// initGapeOnlyFileName - a function to create a filename for the SD card based
+// on the 4-digit year, month, day, hour, minutes and a serial number.
+// The character array 'gapefilename' was defined as a global array
+// at the top of the sketch in the form "YYYYMMDD_HHMM_00_SN000_GAPE.csv"
+// This version records gape data, but not temperature (assumes there is no temperature sensor available)
+void initGapeOnlyFileName(SdFat& sd, SdFile& GAPEFile, DateTime time1, char *gapefilename, bool serialValid, char *serialNumber) {
+    
+    char buf[5];
+    // integer to ascii function itoa(), supplied with numeric year value,
+    // a buffer to hold output, and the base for the conversion (base 10 here)
+    itoa(time1.year(), buf, 10);
+    // copy the ascii year into the filename array
+    for (byte i = 0; i < 4; i++){
+        gapefilename[i] = buf[i];
+    }
+    // Insert the month value
+    if (time1.month() < 10) {
+        gapefilename[4] = '0';
+        gapefilename[5] = time1.month() + '0';
+    } else if (time1.month() >= 10) {
+        gapefilename[4] = (time1.month() / 10) + '0';
+        gapefilename[5] = (time1.month() % 10) + '0';
+    }
+    // Insert the day value
+    if (time1.day() < 10) {
+        gapefilename[6] = '0';
+        gapefilename[7] = time1.day() + '0';
+    } else if (time1.day() >= 10) {
+        gapefilename[6] = (time1.day() / 10) + '0';
+        gapefilename[7] = (time1.day() % 10) + '0';
+    }
+    // Insert an underscore between date and time
+    gapefilename[8] = '_';
+    // Insert the hour
+    if (time1.hour() < 10) {
+        gapefilename[9] = '0';
+        gapefilename[10] = time1.hour() + '0';
+    } else if (time1.hour() >= 10) {
+        gapefilename[9] = (time1.hour() / 10) + '0';
+        gapefilename[10] = (time1.hour() % 10) + '0';
+    }
+    // Insert minutes
+    if (time1.minute() < 10) {
+        gapefilename[11] = '0';
+        gapefilename[12] = time1.minute() + '0';
+    } else if (time1.minute() >= 10) {
+        gapefilename[11] = (time1.minute() / 10) + '0';
+        gapefilename[12] = (time1.minute() % 10) + '0';
+    }
+    // Insert another underscore after time
+    gapefilename[13] = '_';
+    // If there is a valid serialnumber SNxxx, insert it into
+    // the file name in positions 17-21.
+    if (serialValid) {
+        byte serCount = 0;
+        for (byte i = 17; i < 22; i++){
+            gapefilename[i] = serialNumber[serCount];
+            serCount++;
+        }
+    }
+    // Next change the counter on the end of the filename
+    // (digits 14+15) to increment count for files generated on
+    // the same day. This shouldn't come into play
+    // during a normal data run, but can be useful when
+    // troubleshooting.
+    for (uint8_t i = 0; i < 100; i++) {
+        gapefilename[14] = i / 10 + '0';
+        gapefilename[15] = i % 10 + '0';
+        
+        if (!sd.exists(gapefilename)) {
+            // when sd.exists() returns false, this block
+            // of code will be executed to open the file
+            if (!GAPEFile.open(gapefilename, O_RDWR | O_CREAT | O_AT_END)) {
+                // If there is an error opening the file, notify the
+                // user. Otherwise, the file is open and ready for writing
+                // Turn both indicator LEDs on to indicate a failure
+                // to create the log file
+                //				digitalWrite(ERRLED, !digitalRead(ERRLED)); // Toggle error led
+                //				digitalWrite(GREENLED, !digitalRead(GREENLED)); // Toggle indicator led
+                delay(5);
+            }
+            break; // Break out of the for loop when the
+            // statement if(!GAPEFile.exists())
+            // is finally false (i.e. you found a new file name to use).
+        } // end of if(!sd.exists())
+    } // end of file-naming for loop
+    //------------------------------------------------------------
+    // Write 1st header line
+	// Header will be: POSIXt, DateTime, SN (serial number), Hall value, Battery Voltage
+    GAPEFile.print(F("POSIXt,DateTime,SN,Hall,Battery.V"));
+    GAPEFile.println();
+    // Update the file's creation date, modify date, and access date.
+    GAPEFile.timestamp(T_CREATE, time1.year(), time1.month(), time1.day(), 
+                      time1.hour(), time1.minute(), time1.second());
+    GAPEFile.timestamp(T_WRITE, time1.year(), time1.month(), time1.day(), 
+                      time1.hour(), time1.minute(), time1.second());
+    GAPEFile.timestamp(T_ACCESS, time1.year(), time1.month(), time1.day(), 
+                      time1.hour(), time1.minute(), time1.second());
+    GAPEFile.close(); // force the data to be written to the file by closing it
+} // end of initGapeOnlyFileName function
+
+
+
 //------------readBatteryVoltage-------------------
 // readBatteryVoltage function. This will read the AD convertor
 // and calculate the approximate battery voltage (before the
